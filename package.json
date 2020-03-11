@@ -1,0 +1,23 @@
+{
+  "name": "landing-page",
+  "version": "1.0.0",
+  "description": "Serverless landing page with S3 static web hosting ( IaC ) ( S3 + ApiGateway + Lambda + DynamoDb)",
+  "main": "index.js",
+  "dependencies": {
+    "serverless-pseudo-parameters": "^2.5.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rangoc/landing-page.git"
+  },
+  "author": "Goran & Nebojsa",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rangoc/landing-page/issues"
+  },
+  "homepage": "https://github.com/rangoc/landing-page#readme"
+}
