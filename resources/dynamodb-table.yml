@@ -1,0 +1,41 @@
+Resources:
+  LandingPageTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: LandingPage
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+        - AttributeName: verify_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      GlobalSecondaryIndexes:
+        - IndexName: verify_id-index
+          KeySchema:
+            - AttributeName: verify_id
+              KeyType: HASH
+          Projection:
+            NonKeyAttributes:
+              - verified
+            ProjectionType: INCLUDE
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+  LandingPageTableStream:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 100
+      Enabled: True
+      EventSourceArn:
+        Fn::GetAtt: [ LandingPageTable , StreamArn ]
+      FunctionName:
+        Fn::GetAtt: [ StreamLambdaFunction , Arn ]
+      StartingPosition: LATEST

@@ -1,0 +1,44 @@
+service: tiphero-landing-page
+
+plugins:
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+
+# you can overwrite defaults here
+  stage: dev
+  region: eu-central-1
+
+# you can add statements to the Lambda function's IAM Role here
+
+# you can define service wide environment variables here
+#  environment:
+#    variable1: value1
+
+# you can add packaging information here
+#package:
+#  include:
+#    - include-me.js
+#    - include-me-dir/**
+#  exclude:
+#    - exclude-me.js
+#    - exclude-me-dir/**
+
+# you can add CloudFormation resource templates here
+resources:
+  # S3
+  - ${file(resources/s3-bucket.yml)}
+  # Api gateway
+  - ${file(resources/api-gateway.yml)}
+  # Write to DynamoDb lambda
+  - ${file(resources/lambda-dynamodb-write.yml)}
+  # DynamoDb Table
+  - ${file(resources/dynamodb-table.yml)}
+  # Stream Lambda 
+  - ${file(resources/stream-lambda.yml)}
+  # Update DynamoDb lambda
+  - ${file(resources/lambda-dynamodb-update.yml)}
+
+

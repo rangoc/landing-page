@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var accessToken = window.location.hash.substring(14);
+            $.ajax({
+                    type: "POST",
+                    url: '', // add api gateway url that will look similar to this https://#########.execute-api.eu-central-1.amazonaws.com/v0/subscribe 
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        'accessToken' : accessToken
+                    }),
+                    success: function () {
+                        alert("Thank you for subscribing! See you soon!");
+                    },
+                    error: function (xhr, status, errorThrown) {
+                        console.log(errorThrown);
+                        alert("An error occured. We are working on it!")
+                    }
+                });
+            });
+    </script>
+</head>
+<body>
+    <header>You have successfully subscribed!</header>
+</body>
+</html>

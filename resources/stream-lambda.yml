@@ -1,0 +1,103 @@
+Resources:
+  StreamLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          'use strict';
+          var AWS = require('aws-sdk');
+          var ses = new AWS.SES();
+          
+          exports.handler = function (event, context, callback) {
+            const records = event.Records;
+            const insertEvents = records.filter(r => r.eventName === "INSERT");
+            console.log('filtered insert events ', insertEvents);
+
+            let promises = [];
+            for (let i = 0; i < insertEvents.length; i++) {
+              const record = insertEvents[i];
+              console.log('record', JSON.stringify(record));
+              const subscriberEmail = record.dynamodb.NewImage.email.S;
+              const verification = record.dynamodb.NewImage.verify_id.S;
+              console.log('Sending mail');
+              promises.push(sendEmail(subscriberEmail, verification));
+            }
+            Promise.all(promises)
+              .then(res => callback(null, `Successfully sent email to candidates.`))
+              .catch(err => {
+                console.log('Encountered error while sending email ', err);
+                callback(err);
+              });
+          };
+
+          const sendEmail = (subscriberEmail, verification) => {
+            var subscriptionLink = ''; # add here full url path of your subscription.html page
+            var params = {
+              Destination: {
+                ToAddresses: [
+                  subscriberEmail, # if you are in sandbox in SES you first need to verify these adresses in order to test them
+                ]
+              },
+              Message: {
+                Body: {
+                  Text: {
+                    Data: 'To confirm your subscription click on the following link ' + subscriptionLink +  '#access-token=' + verification,
+                  }
+                },
+                Subject: {
+                  Data: 'Subscription'
+                }
+              },
+              Source: '', # if you are in a sandbox in SES you first need to verify email/domain that you will use as a source and add it here < ---
+            };
+            ses.sendEmail(params).promise();
+          };
+      Description: AWS Lambda function
+      FunctionName: 'stream-lambda-function'
+      Handler: index.handler
+      MemorySize: 256
+      Role: !GetAtt LambdaStreamIamRole.Arn
+      Runtime: nodejs12.x
+      Timeout: 60
+  
+  
+  
+  LambdaStreamIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        - PolicyName: streamLambdaRolePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action: 
+                  - 'logs:PutDestinationPolicy'
+                  - 'dynamodb:DescribeStream'
+                  - 'logs:CreateLogGroup'
+                  - 'logs:PutLogEvents'
+                  - 'dynamodb:ListStreams'
+                  - 'ses:SendEmail'
+                  - 'logs:CreateLogDelivery'
+                  - 'logs:PutMetricFilter'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutResourcePolicy'
+                  - 'logs:UpdateLogDelivery'
+                  - 'dynamodb:GetShardIterator'
+                  - 'dynamodb:GetItem'
+                  - 'logs:PutSubscriptionFilter'
+                  - 'logs:PutRetentionPolicy'
+                  - 'logs:PutDestination'
+                  - 'dynamodb:GetRecords'
+                Resource: '*'
+      

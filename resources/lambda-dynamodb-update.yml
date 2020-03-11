@@ -1,0 +1,129 @@
+Resources:
+  LambdaDynamoDbUpdate:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          'use strict';
+
+          var AWS = require('aws-sdk');
+
+          var docClient = new AWS.DynamoDB.DocumentClient({region: 'eu-central-1'});
+
+          exports.handler = function (event, context, callback) {
+              var responseCode = 200;
+              var response = {
+                  statusCode: responseCode,
+                  headers: {
+                      'Content-Type': 'application/json',
+                      "Access-Control-Allow-Origin" : "*", // Required for CORS support to work
+                      "Access-Control-Allow-Credentials" : true // Required for cookies, authorization headers with HTTPS
+                      
+                  },
+                  
+                  "body": "{\"result\": \"Success.\"}",
+                  
+              };
+              
+              var data = JSON.parse(event.body);
+
+              var params = {
+                  TableName : "LandingPage",
+                  IndexName : "verify_id-index",
+                  KeyConditionExpression: "#verifyId = :v_verifyId",
+                  ExpressionAttributeNames:{
+                      "#verifyId": "verify_id"
+                  },
+                  ExpressionAttributeValues: {
+                      ":v_verifyId": data.accessToken
+                  }
+              };
+
+              docClient.query(params, function(err, data) {
+                  if (err) {
+                      console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
+                  } else {
+                      console.log("Query succeeded.");
+                      data.Items.forEach(function(item) {
+                          console.log(" -", item.email + ": " + item.verified);
+                          const paramsForUpdate = {
+                            TableName: 'LandingPage',
+                            Key: { 
+                              "email" : item.email  
+                            },
+                            UpdateExpression: "set verified = :x",
+                            ExpressionAttributeValues: {
+                              ":x": "true" 
+                            }
+                          };
+                          docClient.update(paramsForUpdate, function(err, data) {
+                            if (err) console.log(err);
+                            else console.log("Succesfully updated!");
+                          });
+                      });
+                  }
+              });
+              callback(null, response);
+          };
+      Description: AWS Lambda function
+      FunctionName: 'lambda-dynamoDb-update'
+      Handler: index.handler
+      MemorySize: 256
+      Role: !GetAtt LambdaDynamoDbUpdateIamRole.Arn
+      Runtime: nodejs12.x
+      Timeout: 60
+
+  LambdaDynamoDbUpdateIamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+              
+      Path: '/'
+      Policies:
+        - PolicyName: landingPageLambdaDynamoDbUpdateRolePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action: 
+                  - 'logs:DeleteSubscriptionFilter'
+                  - 'logs:DeleteLogStream'
+                  - 'logs:CreateExportTask'
+                  - 'logs:DeleteResourcePolicy'
+                  - 'logs:CreateLogStream'
+                  - 'logs:DeleteMetricFilter'
+                  - 'logs:TagLogGroup'
+                  - 'logs:CancelExportTask'
+                  - 'dynamodb:GetItem'
+                  - 'logs:DeleteRetentionPolicy'
+                  - 'logs:DeleteLogDelivery'
+                  - 'logs:AssociateKmsKey'
+                  - 'logs:PutDestination'
+                  - 'logs:DisassociateKmsKey'
+                  - 'dynamodb:ConditionCheckItem'
+                  - 'logs:UntagLogGroup'
+                  - 'logs:DeleteLogGroup'
+                  - 'logs:PutDestinationPolicy'
+                  - 'dynamodb:Scan'
+                  - 'dynamodb:Query'
+                  - 'dynamodb:UpdateItem'
+                  - 'logs:DeleteDestination'
+                  - 'logs:PutLogEvents'
+                  - 'logs:CreateLogGroup'
+                  - 's3:GetObject'
+                  - 'logs:PutMetricFilter'
+                  - 'logs:CreateLogDelivery'
+                  - 'logs:PutResourcePolicy'
+                  - 'logs:UpdateLogDelivery'
+                  - 'apigateway:POST'
+                  - 'logs:PutSubscriptionFilter'
+                  - 'logs:PutRetentionPolicy'
+                Resource: '*'
