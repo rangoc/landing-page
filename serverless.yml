@@ -1,4 +1,4 @@
-service: tiphero-landing-page
+service: landing-page
 
 plugins:
   - serverless-pseudo-parameters
