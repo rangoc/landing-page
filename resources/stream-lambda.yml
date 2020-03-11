@@ -31,11 +31,11 @@ Resources:
           };
 
           const sendEmail = (subscriberEmail, verification) => {
-            var subscriptionLink = ''; # add here full url path of your subscription.html page
+            var subscriptionLink = ''; // add here full url path of your subscription.html page
             var params = {
               Destination: {
                 ToAddresses: [
-                  subscriberEmail, # if you are in sandbox in SES you first need to verify these adresses in order to test them
+                  subscriberEmail, // if you are in sandbox in SES you first need to verify these adresses in order to test them
                 ]
               },
               Message: {
@@ -48,7 +48,7 @@ Resources:
                   Data: 'Subscription'
                 }
               },
-              Source: '', # if you are in a sandbox in SES you first need to verify email/domain that you will use as a source and add it here < ---
+              Source: '', // if you are in a sandbox in SES you first need to verify email/domain that you will use as a source and add it here < ---
             };
             ses.sendEmail(params).promise();
           };
