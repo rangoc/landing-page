@@ -7,7 +7,7 @@ Resources:
       EndpointConfiguration:
         Types:
           - EDGE
-      Name: tiphero-api
+      Name: landing-page-api
   ApiGatewayResource:
     Type: AWS::ApiGateway::Resource
     Properties:
